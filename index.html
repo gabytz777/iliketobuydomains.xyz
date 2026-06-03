@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I Like To Buy Domains</title>
+
+<style>
+body {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+h1 {
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+li {
+    margin: 10px 0;
+}
+
+a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.chat {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+#messages {
+    height: 250px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+#msgInput {
+    width: 70%;
+    padding: 8px;
+}
+
+button {
+    padding: 8px 12px;
+}
+</style>
+</head>
+<body>
+
+<h1>i like to buy domains</h1>
+
+<p class="subtitle">
+i buy domains and occasionally put things on them.
+</p>
+
+<h2>sites</h2>
+
+<ul>
+    <li><a href="https://petalitas.online" target="_blank">petalitas.online</a></li>
+    <li><a href="https://streamduck.site" target="_blank">streamduck.site</a></li>
+    <li><a href="https://booly.rocks" target="_blank">booly.rocks</a></li>
+    <li><a href="https://floridos.lol" target="_blank">floridos.lol</a></li>
+    <li><a href="https://github.com/gabytz777" target="_blank">github</a></li>
+</ul>
+
+<div class="chat">
+    <h2>public chat</h2>
+
+    <div id="messages"></div>
+
+    <input id="msgInput" placeholder="say something">
+    <button onclick="sendMsg()">send</button>
+</div>
+
+<script>
+let username = localStorage.getItem("username");
+
+if (!username) {
+    username = prompt("username?");
+    if (!username) username = "anonymous";
+    localStorage.setItem("username", username);
+}
+
+const API = "https://petalitasbackend-production.up.railway.app";
+
+let lastSend = 0;
+
+async function sendMsg() {
+    const now = Date.now();
+
+    if (now - lastSend < 2000) {
+        alert("wait 2 seconds");
+        return;
+    }
+
+    const input = document.getElementById("msgInput");
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    lastSend = now;
+
+    try {
+        await fetch(API + "/send", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                user: username,
+                text: text
+            })
+        });
+
+        input.value = "";
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function loadMessages() {
+    try {
+        const res = await fetch(API + "/messages");
+        const data = await res.json();
+
+        const box = document.getElementById("messages");
+
+        box.innerHTML = data.map(m =>
+            `<div><b>${escapeHtml(m.user)}</b>: ${escapeHtml(m.text)}</div>`
+        ).join("");
+
+        box.scrollTop = box.scrollHeight;
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+setInterval(loadMessages, 2000);
+loadMessages();
+</script>
+
+</body>
+</html>
